@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<content xmlns:j="http://www.jahia.org/jahia/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0">
+    <modules jcr:primaryType="jnt:modules">
+        <modulesexporter j:dependencies="default"
+                       j:modulePriority="0"
+                       j:moduleType="module"
+                       j:title="modulesexporter"
+                       jcr:mixinTypes="jmix:hasExternalProviderExtension"
+                       jcr:primaryType="jnt:module">
+                <sources jcr:mixinTypes="jmix:hasExternalProviderExtension"
+                  jcr:primaryType="jnt:moduleVersionFolder"
+                  j:staticMountPointProviderKey="module-modulesexporter-1.1-SNAPSHOT">
+                    <pom.xml jcr:primaryType="jnt:xmlFile"/>
+                    <src jcr:mixinTypes="jmix:hasExternalProviderExtension"
+                 jcr:primaryType="jnt:folder">
+                        <main jcr:mixinTypes="jmix:hasExternalProviderExtension"
+                     jcr:primaryType="jnt:folder">
+                            <java jcr:mixinTypes="jmix:hasExternalProviderExtension"
+                        jcr:primaryType="jnt:javaPackageFolder">
+                                <org jcr:mixinTypes="jmix:hasExternalProviderExtension"
+                          jcr:primaryType="jnt:javaPackageFolder">
+                                    <jahia jcr:mixinTypes="jmix:hasExternalProviderExtension"
+                               jcr:primaryType="jnt:folder">
+                                        <modules jcr:mixinTypes="jmix:hasExternalProviderExtension"
+                                    jcr:primaryType="jnt:javaPackageFolder">
+                                            <handler jcr:mixinTypes="jmix:hasExternalProviderExtension"
+                                       jcr:primaryType="jnt:javaPackageFolder">
+                                                <ModulesMigrationHandler.java jcr:primaryType="jnt:javaSourceFile"/>
+                                            </handler>
+                                            <model jcr:mixinTypes="jmix:hasExternalProviderExtension"
+                                     jcr:primaryType="jnt:javaPackageFolder">
+                                                <EnvironmentInfo.java jcr:primaryType="jnt:javaSourceFile"/>
+                                            </model>
+                                        </modules>
+                                    </jahia>
+                                </org>
+                            </java>
+                        </main>
+                    </src>
+                </sources>
+                
+                <portlets jcr:primaryType="jnt:portletFolder"/>
+                <files jcr:primaryType="jnt:folder"/>
+                <contents jcr:primaryType="jnt:contentFolder"/>
+                <templates j:rootTemplatePath="/base" jcr:primaryType="jnt:templatesFolder">
+                    <files jcr:primaryType="jnt:folder"/>
+                    <contents jcr:primaryType="jnt:contentFolder"/>
+                    <server-settings-base j:hiddenTemplate="false"
+                                  j:view="serverSettings"
+                                  jcr:primaryType="jnt:template">
+                        <configurations j:hiddenTemplate="false"
+                               j:icon="#/modules/serverSettings/templates/files/serveradmin/configurations/configurations.png"
+                               j:titleKey="Configurations"
+                               jcr:mixinTypes="jmix:rbTitle"
+                               jcr:primaryType="jnt:pageTemplate">
+                            <modules-exporter j:applyOn="jnt:globalSettings"
+                                    j:defaultTemplate="false"
+                                    j:hiddenTemplate="false"
+                                    j:titleKey="modules-exporter.title"
+                                    jcr:mixinTypes="jmix:rbTitle"
+                                    jcr:primaryType="jnt:contentTemplate">
+                                <j:translation_en jcr:language="en"
+                                       jcr:mixinTypes="mix:title"
+                                       jcr:primaryType="jnt:translation"
+                                       jcr:title="modules exporter"/>
+                                <pagecontent jcr:primaryType="jnt:contentList">
+                                    <modules-exporter jcr:primaryType="jnt:modulesExporter">
+                                        <j:translation_en jcr:language="en"
+                                             jcr:mixinTypes="mix:title"
+                                             jcr:primaryType="jnt:translation"
+                                             jcr:title="Modules Exporter"/>
+                                    </modules-exporter>
+                                </pagecontent>
+                            </modules-exporter>
+                        </configurations>
+                    </server-settings-base>
+                </templates>
+                
+            </modulesexporter>
+    </modules>
+</content>

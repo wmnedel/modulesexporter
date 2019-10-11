@@ -1,0 +1,14 @@
+.loading-spinner span{
+    background-position: right;
+    background-repeat: no-repeat;
+    background-image: url(images/loading.gif);
+    margin-left: 20px;
+    padding-right: 40px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    font-weight: bold;
+}
+
+.loading-spinner{
+    display: none;
+}

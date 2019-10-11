@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flow xmlns="http://www.springframework.org/schema/webflow"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/webflow http://www.springframework.org/schema/webflow/spring-webflow-2.4.xsd">
+
+    <var name="environmentInfo" class="org.jahia.modules.model.EnvironmentInfo"/>
+
+
+    <view-state id="environmentInfo" model="environmentInfo">
+
+        <transition on="migrateModules" to="isValid">
+            <evaluate
+                    expression="modulesMigrationHandler.execute(
+                    environmentInfo,
+                    externalContext.nativeRequest.getAttribute('currentResource').node,
+                    flowRequestContext,
+                    externalContext.nativeRequest.getAttribute('url'))"/>
+        </transition>
+    </view-state>
+
+    <decision-state id="isValid">
+        <if test="messageContext.hasErrorMessages()" then="environmentInfo" else="migrationResult"/>
+    </decision-state>
+
+    <view-state id="migrationResult">
+
+        <transition on="previous" to="environmentInfo" bind="false" validate= "false"></transition>
+    </view-state>
+
+</flow>
