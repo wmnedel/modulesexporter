@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -33,12 +34,15 @@ public class ExportModules extends Action {
     public ActionResult doExecute(HttpServletRequest httpServletRequest, RenderContext renderContext, Resource resource, JCRSessionWrapper jcrSessionWrapper, Map<String, List<String>> map, URLResolver urlResolver) throws Exception {
 
         logger.info("#### Modules export started ####");
-        //String fileName = "jahiaModules-" + Calendar.getInstance().getTime();
+        final String fileName = generateFileName();
         final String query = "SELECT * FROM [jnt:moduleManagementBundle]";
+        int exportedModules = 0;
 
         try {
             HttpServletResponse response = renderContext.getResponse();
-            response.setHeader("Content-Disposition", "attachment; filename=all-modules.zip");
+            response.setContentType("application/zip");
+            response.setHeader("Content-Disposition", "attachment; filename=all-modules-" + fileName + ".zip");
+
             OutputStream outputStream = response.getOutputStream();
             ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
             NodeIterator iterator = jcrSessionWrapper.getWorkspace().getQueryManager().createQuery(query, Query.JCR_SQL2).execute().getNodes();
@@ -57,23 +61,29 @@ public class ExportModules extends Action {
                 zipOutputStream.write(buffer);
                 zipOutputStream.closeEntry();
                 content.close();
+                exportedModules++;
             }
-
-            zipOutputStream.close();
+            outputStream.flush();
             outputStream.close();
+            zipOutputStream.close();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        logger.info(exportedModules + " modules have been exported");
         logger.info("#### Modules export finished ####");
-        /*
-        String redirectTo = renderContext.getServletPath() +"/"+ renderContext.getWorkspace()+ "/" + renderContext.getMainResourceLocale();
-        redirectTo = redirectTo.replaceAll("adminframe","admin");
-        redirectTo+=  "/settings." + resource.getNode().getName() + ".html";
-        */
 
         ActionResult result = new ActionResult(HttpServletResponse.SC_OK, "/settings." + resource.getNode().getName());
 
         return result;
+    }
+
+
+    private String generateFileName() {
+
+        Calendar cal = Calendar.getInstance();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("ddMMyyyy-hhmmss");
+        String formattedDate = dateFormat.format(cal.getTime());
+        return "All-Modules-" + formattedDate;
     }
 }

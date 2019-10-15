@@ -128,16 +128,25 @@
 </div>
 
 <c:set var="redirectUrl" value="${renderContext.mainResource.node.path}.html" scope="session" />
-<div class="box-1">
-    <div class="container-fluid">
-        <div class="row-fluid">
-            <div class="span5">
-                <h3><strong> You may also export and download all modules from the local instance </strong></h3>
-                <a class="btn btn-success" href="${actionUrl}">Download all modules</a>
+
+<form:form id="form2" method="post" action="${actionUrl}">
+
+    <div class="box-1">
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span5">
+                    <h3><strong> You may also export and download all modules from the local instance </strong></h3>
+                    <button id="downloadModules2" class="btn btn-success" type="submit">
+                        <fmt:message key="lbl.btnDownload"> </fmt:message>
+                    </button>
+
+
+                </div>
             </div>
         </div>
     </div>
-</div>
+</form:form>
+
 
 
 
