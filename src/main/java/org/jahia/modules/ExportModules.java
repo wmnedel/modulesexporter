@@ -63,8 +63,7 @@ public class ExportModules extends Action {
                 content.close();
                 exportedModules++;
             }
-            outputStream.flush();
-            outputStream.close();
+
             zipOutputStream.close();
 
         } catch (Exception e) {
