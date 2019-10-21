@@ -35,7 +35,7 @@ public class MigrateModules {
     private String targetHostName;
     private String targetHttpScheme;
 
-    private int targetPort = 443;
+    private int targetPort;
     private String targetUserName;
     private String targetPassword;
 
@@ -58,7 +58,16 @@ public class MigrateModules {
         this.resultReport.add(message);
     }
 
-    public boolean migrateModules(EnvironmentInfo environmentInfo, JCRNodeWrapper jcrNodeWrapper, URLGenerator url) throws RepositoryException {
+    /**
+     * Method to start the migration of modules from source to target
+     * @param environmentInfo The environment information read from front-end and system properties
+     * @param jcrNodeWrapper Node wrapper information
+     * @param url URL object for connection
+     * @return True if modules were sucessfully migrated, otherwise False
+     */
+    public boolean migrateModules(EnvironmentInfo environmentInfo,
+                                  JCRNodeWrapper jcrNodeWrapper,
+                                  URLGenerator url) throws RepositoryException {
 
         this.errorMessage = new StringBuffer();
         this.resultReport = new ArrayList<>();
@@ -67,11 +76,9 @@ public class MigrateModules {
         HttpConnectionHelper targetConnection = new HttpConnectionHelper(
                 targetHostName, targetHttpScheme, targetPort, targetUserName, targetPassword);
 
-        //getTargetModules
         JSONObject targetBundlesJsonObj = getTargetModules(targetConnection);
 
         if (targetBundlesJsonObj == null){
-           // setErrorMessage("Cannot read modules information for target host " + targetHostName);
             return false;
         }
 
@@ -84,7 +91,6 @@ public class MigrateModules {
             return false;
         }
 
-        //get Local Modules
         List<JahiaModule> sourceModules = getLocalModules();
 
         if (sourceModules == null) {
@@ -92,17 +98,14 @@ public class MigrateModules {
             return false;
         }
 
-
-        //install Modules
-        int installedModules = installModules(jcrNodeWrapper.getSession(), targetConnection, sourceModules, targetParsedModules, environmentInfo.isAutoStart());
-
+        int installedModules = installModules(jcrNodeWrapper.getSession(),
+                targetConnection,
+                sourceModules,
+                targetParsedModules,
+                environmentInfo.isAutoStart());
 
         if (installedModules == 0) {
             setErrorMessage("Unable to find any modules to install in the target instance, all modules already migrated?");
-            return false;
-        }
-        else if (installedModules ==-1){
-
             return false;
         }
 
@@ -116,9 +119,13 @@ public class MigrateModules {
      * @param sourceModules the available modules of the source instance
      * @param targetParsedModules the availalbe modules in the target instance
      * @param autoStart start the module in the target instance upon installation
-     * @return
+     * @return The number of installed modules
      */
-    private int installModules(JCRSessionWrapper jcrSessionWrapper, HttpConnectionHelper targetConnection, List<JahiaModule> sourceModules, List<JahiaModule> targetParsedModules, boolean autoStart) {
+    private int installModules(JCRSessionWrapper jcrSessionWrapper,
+                               HttpConnectionHelper targetConnection,
+                               List<JahiaModule> sourceModules,
+                               List<JahiaModule> targetParsedModules,
+                               boolean autoStart) {
         int installedModules = 0;
         for (JahiaModule sourceModule : sourceModules) {
             boolean install = true;
@@ -129,9 +136,7 @@ public class MigrateModules {
                 }
             }
             if (install) {
-
                 String result = JahiaModule.installModule(jcrSessionWrapper, targetConnection, sourceModule, autoStart);
-                String reportMsg = "";
                 try {
                     JSONObject rootJsonObject = new JSONObject(result);
                     JSONArray bundleInfo = rootJsonObject.getJSONArray("bundleInfos");
@@ -140,15 +145,11 @@ public class MigrateModules {
                     String bundleName = bundleDetails.getString("symbolicName");
                     String version = bundleDetails.getString("version");
                     String bundleKey = bundleDetails.getString("key");
-
                     String message = rootJsonObject.getString("message");
 
                     ResultMessage resultMessage = new ResultMessage(bundleName, version, bundleKey, message);
-
                     this.resultReport.add(resultMessage);
-
-                    reportMsg = "Module " + bundleName + "-" + version + " was installed in host " + this.targetHostName + " result: " + message;
-                    logger.info(reportMsg);
+                    logger.info("Module " + bundleName + "-" + version + " was installed in host " + this.targetHostName + " result: " + message);
                     installedModules++;
                 } catch (JSONException e) {
                     this.setErrorMessage(result);
@@ -163,12 +164,10 @@ public class MigrateModules {
 
     /**
      * Get a JSONObject for the modules of the target server using Jahia REST API.
-     * @param targetConnection
-     * @return
+     * @param targetConnection Object with connection information about the target
+     * @return JSON Object containing information about target modules
      */
     private JSONObject getTargetModules(HttpConnectionHelper targetConnection) {
-
-
         String responseBundlesTarget = targetConnection.executeGetRequest(BUNDLESINFO_URL);
 
         if (responseBundlesTarget == null) {
@@ -189,18 +188,19 @@ public class MigrateModules {
         }
 
         return null;
-
     }
 
-
-
-
+    /**
+     * Parse modules to simpler List object
+     * @param desiredType Type of bundle
+     * @param nodesJsonObj JSON object with nodes to be parsed
+     * @return JSON Object containing information about target modules
+     */
     public List<JahiaModule> parseTargetModules(String desiredType, JSONObject nodesJsonObj) {
         List<JahiaModule> moduleList = new ArrayList<JahiaModule>();
         JSONArray jahiaNodes = nodesJsonObj.names();
 
         try {
-
             String nodeName = jahiaNodes.getString(0);
             JSONObject nodeModulesJsonObj = (JSONObject) nodesJsonObj.get(nodeName);
             JSONArray nodeModules = nodeModulesJsonObj.names();
@@ -219,11 +219,7 @@ public class MigrateModules {
                     String parsedModuleName = moduleName.substring(left, right).replace("/", "");
                     String parsedModuleVersion = moduleName.substring(right, end).replace("/", "");
 
-                    JahiaModule jahiaModule = new JahiaModule(
-                            parsedModuleName,
-                            parsedModuleVersion
-                    );
-
+                    JahiaModule jahiaModule = new JahiaModule(parsedModuleName, parsedModuleVersion);
                     moduleList.add(jahiaModule);
 
                 }
@@ -236,13 +232,11 @@ public class MigrateModules {
         }
 
         return moduleList;
-
-
     }
 
     /**
      * Get a list of modules available on the local/source instance
-     * @return
+     * @return List of installed local modules
      */
     private List<JahiaModule> getLocalModules() {
 
@@ -265,13 +259,14 @@ public class MigrateModules {
 
         }
 
-
         return localModules;
-
     }
 
-
-
+    /**
+     * Set connection details for source/target
+     * @param environmentInfo Environment information read from Front End
+     * @param url URL object
+     */
     private void setConnectionsDetails(EnvironmentInfo environmentInfo, URLGenerator url) {
 
         this.targetHostName = environmentInfo.getRemoteHost();
@@ -295,7 +290,5 @@ public class MigrateModules {
         this.sourcePort = localUrl.getPort();
         this.sourceHostName = localUrl.getHost();
         this.sourceHttpScheme = localUrl.getProtocol();
-
-
     }
 }

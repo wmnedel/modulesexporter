@@ -57,7 +57,7 @@
     <groupId>org.jahia.modules</groupId>
     <artifactId>modulesexporter</artifactId>
     <name>modulesExporter</name>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.1</version>
     <packaging>bundle</packaging>
   <description>A module to export/migrate modules from a local instance to a remote instance.</description>
 

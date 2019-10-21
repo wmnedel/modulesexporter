@@ -81,7 +81,7 @@
                     <div class="span4">
                         <label for="remoteToolsPwd"><fmt:message
                                 key="lbl.remoteToolsPwd"></fmt:message> </label>
-                        <input class="form-control" path="remoteToolsPwd" type="text" name="remoteToolsPwd"
+                        <input class="form-control" path="remoteToolsPwd" type="password" name="remoteToolsPwd"
                                id="remoteToolsPwd" value="${environmentInfo.remoteToolsPwd}" required/>
                     </div>
                 </div>

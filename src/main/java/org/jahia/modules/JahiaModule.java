@@ -185,7 +185,6 @@ public class JahiaModule {
                 compareVersions(this, that) == JAHIA_MODULE_SOURCE_HIGHER;
     }
 
-
     @Override
     public int hashCode() {
         return Objects.hash(name, version, state);

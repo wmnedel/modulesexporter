@@ -109,7 +109,6 @@ public class HttpConnectionHelper {
         AuthCache authCache = new BasicAuthCache();
         authCache.put(targetHost, new BasicScheme());
 
-        // Add AuthCache to the execution contexts
         this.context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
         context.setAuthCache(authCache);

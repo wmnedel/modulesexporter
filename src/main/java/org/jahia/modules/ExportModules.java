@@ -33,7 +33,7 @@ public class ExportModules extends Action {
     @Override
     public ActionResult doExecute(HttpServletRequest httpServletRequest, RenderContext renderContext, Resource resource, JCRSessionWrapper jcrSessionWrapper, Map<String, List<String>> map, URLResolver urlResolver) throws Exception {
 
-        logger.info("#### Modules export started ####");
+        logger.info("Modules Download started");
         final String fileName = generateFileName();
         final String query = "SELECT * FROM [jnt:moduleManagementBundle]";
         int exportedModules = 0;
@@ -71,16 +71,14 @@ public class ExportModules extends Action {
             e.printStackTrace();
         }
         logger.info(exportedModules + " modules have been exported");
-        logger.info("#### Modules export finished ####");
+        logger.info("Modules download finished");
 
         ActionResult result = new ActionResult(HttpServletResponse.SC_OK, "/settings." + resource.getNode().getName());
 
         return result;
     }
 
-
     private String generateFileName() {
-
         Calendar cal = Calendar.getInstance();
         SimpleDateFormat dateFormat = new SimpleDateFormat("ddMMyyyy-hhmmss");
         String formattedDate = dateFormat.format(cal.getTime());
