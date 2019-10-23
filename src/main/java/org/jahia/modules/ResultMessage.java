@@ -16,7 +16,7 @@ public class ResultMessage implements Serializable {
     private static final long serialVersionUID = 1;
 
     /**     
-     * Constructor from ResultMessage
+     * Constructor for ResultMessage
      * @param bundleName    Name of the bundle
      * @param version       Bundle version
      * @param bundleKey     Bundle key

@@ -36,6 +36,9 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 
+/**    
+ * HTTP connection helper to deal with distinct connection for distinct environments
+ */
 public class HttpConnectionHelper {
     Logger logger = LoggerFactory.getLogger(HttpConnectionHelper.class);
 
@@ -49,12 +52,13 @@ public class HttpConnectionHelper {
     private String password;
     private int port;
 
-    private String proxyHost;
-    private int proxyPort;
-    private String proxyUser;
-    private String proxyPassword;
+    private StringBuilder errorMessage;
 
-    private StringBuffer errorMessage;
+    private static final String GET_FAILURE_MESSAGE = "GET failed for ";
+    private static final String POST_FAILURE_MESSAGE = "POST failed for ";
+    private static final String ERROR_GENERIC_REQUEST = "Generic error accessing ";
+    private static final String HTTP_SCHEME = "http";
+    private static final String HTTPS_SCHEME = "https";
 
     public String getErrorMessage() {
         return errorMessage.toString();
@@ -64,42 +68,29 @@ public class HttpConnectionHelper {
         errorMessage.append("</br>" + message);
     }
 
+    /**     
+     * Constructor for HttpConnectionHelper
+     * @param hostName  Name of the host
+     * @param scheme    http/https
+     * @param port      Port number
+     * @param userName  User credentials
+     * @param password  Password credentials
+     */
     public HttpConnectionHelper(String hostName, String scheme, int port, String userName, String password) {
         this.hostName = hostName;
         this.scheme = scheme;
         this.userName = userName;
         this.password = password;
         this.port = port;
-        this.errorMessage = new StringBuffer();
-    }
-
-    public HttpConnectionHelper(String hostName,
-                                int port,
-                                String userName,
-                                String password,
-                                String proxyHost,
-                                int proxyPort,
-                                String proxyUser,
-                                String proxyPassword) {
-        this.hostName = hostName;
-
-        this.userName = userName;
-        this.password = password;
-        this.port = port;
-
-        this.proxyHost = proxyHost;
-        this.proxyPort = proxyPort;
-        this.proxyUser = proxyUser;
-        this.proxyPassword = proxyPassword;
-        this.errorMessage = new StringBuffer();
+        this.errorMessage = new StringBuilder();
     }
 
     private void prepareConnection() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
 
-        if (this.scheme.equalsIgnoreCase("https")) {
-            this.targetHost = new HttpHost(hostName, port, "https");
-        } else if (this.scheme.equalsIgnoreCase("http")) {
-            this.targetHost = new HttpHost(hostName, port, "http");
+        if (this.scheme.equalsIgnoreCase(HTTPS_SCHEME)) {
+            this.targetHost = new HttpHost(hostName, port, HTTPS_SCHEME);
+        } else if (this.scheme.equalsIgnoreCase(HTTP_SCHEME)) {
+            this.targetHost = new HttpHost(hostName, port, HTTP_SCHEME);
         }
 
         CredentialsProvider credsProvider = new BasicCredentialsProvider();
@@ -120,8 +111,8 @@ public class HttpConnectionHelper {
 
         Registry<ConnectionSocketFactory> socketFactoryRegistry =
                 RegistryBuilder.<ConnectionSocketFactory>create()
-                        .register("https", sslsf)
-                        .register("http", new PlainConnectionSocketFactory())
+                        .register(HTTPS_SCHEME, sslsf)
+                        .register(HTTP_SCHEME, new PlainConnectionSocketFactory())
                         .build();
 
         BasicHttpClientConnectionManager connectionManager =
@@ -131,55 +122,66 @@ public class HttpConnectionHelper {
                 .setConnectionManager(connectionManager).build();
     }
 
-    public String executeGetRequest(String URI) {
+    /**     
+     * Execute a GET request to URI and manipulate results and exceptions
+     * @param uri   String containing the URI
+     * @return String containing the request response; otherwise null
+     */
+    public String executeGetRequest(String uri) {
 
         try {
             prepareConnection();
-            HttpGet httpGet = new HttpGet(URI);
+            HttpGet httpGet = new HttpGet(uri);
             HttpResponse response = client.execute(targetHost, httpGet, context);
 
             switch (response.getStatusLine().getStatusCode()) {
                 case HttpStatus.SC_OK:
                     return EntityUtils.toString(response.getEntity());
                 case HttpStatus.SC_UNAUTHORIZED:
-                    setErrorMessage("Connection to " + targetHost + "/" + URI + " returned unauthorized error. Please check your parameters");
+                    setErrorMessage("Connection to " + targetHost + "/" + uri + " returned unauthorized error. Please check your parameters");
                     return null;
                 case HttpStatus.SC_FORBIDDEN:
-                    setErrorMessage("Access forbidden to " + targetHost + "/" + URI);
+                    setErrorMessage("Access forbidden to " + targetHost + "/" + uri);
                     return null;
                 case HttpStatus.SC_INTERNAL_SERVER_ERROR:
-                    setErrorMessage("Internal server error: " + targetHost + "/" + URI);
+                    setErrorMessage("Internal server error: " + targetHost + "/" + uri);
                     return null;
                 default:
-                    setErrorMessage("Generic error accessing: " + targetHost + "/" + URI + "Please check the instance details");
+                    setErrorMessage(ERROR_GENERIC_REQUEST + targetHost + "/" + uri + "Please check the instance details");
                     return null;
             }
 
         } catch (KeyStoreException e) {
             logger.debug(e.getMessage(), e);
-            setErrorMessage("GET failed for " + targetHost + "/" + URI + " with KeyStoreException");
+            setErrorMessage(GET_FAILURE_MESSAGE + targetHost + "/" + uri + " with KeyStoreException");
         } catch (NoSuchAlgorithmException e) {
             logger.debug(e.getMessage(), e);
-            setErrorMessage("GET failed for " + targetHost + "/" + URI + " with NoSuchAlgorithmException");
+            setErrorMessage(GET_FAILURE_MESSAGE + targetHost + "/" + uri + " with NoSuchAlgorithmException");
         } catch (KeyManagementException e) {
             logger.debug(e.getMessage(), e);
-            setErrorMessage("GET failed for " + targetHost + "/" + URI + " with KeyManagementException");
+            setErrorMessage(GET_FAILURE_MESSAGE + targetHost + "/" + uri + " with KeyManagementException");
         } catch (ClientProtocolException e) {
             logger.debug(e.getMessage(), e);
-            setErrorMessage("GET failed for " + targetHost + "/" + URI + " with ClientProtocolException");
+            setErrorMessage(GET_FAILURE_MESSAGE + targetHost + "/" + uri + " with ClientProtocolException");
         } catch (IOException e) {
             logger.debug(e.getMessage(), e);
-            setErrorMessage("GET failed for " + targetHost + "/" + URI + " with IOException");
+            setErrorMessage(GET_FAILURE_MESSAGE + targetHost + "/" + uri + " with IOException");
         }
 
-        setErrorMessage("Error accessing: " + targetHost + " Please check the instance details");
+        setErrorMessage(ERROR_GENERIC_REQUEST + targetHost + " Please check the instance details");
         return null;
     }
 
-    public String executePostRequest(String URI, HttpEntity multipart) {
+    /**     
+     * Execute a POST request to URI and manipulate results and exceptions
+     * @param uri           String containing the URI
+     * @param multipart     multipart object to http connection
+     * @return String containing the request response; otherwise null
+     */
+    public String executePostRequest(String uri, HttpEntity multipart) {
         try {
             prepareConnection();
-            HttpPost httpPost = new HttpPost(URI);
+            HttpPost httpPost = new HttpPost(uri);
             httpPost.setEntity(multipart);
             HttpResponse response = client.execute(targetHost, httpPost, context);
 
@@ -187,36 +189,36 @@ public class HttpConnectionHelper {
                 case HttpStatus.SC_OK:
                     return EntityUtils.toString(response.getEntity());
                 case HttpStatus.SC_UNAUTHORIZED:
-                    setErrorMessage("Connection to " + targetHost + "/" + URI + " returned unauthorized error. Please check the instance details");
+                    setErrorMessage("Connection to " + targetHost + "/" + uri + " returned unauthorized error. Please check the instance details");
                     return null;
                 case HttpStatus.SC_FORBIDDEN:
-                    setErrorMessage("Access forbidden to " + targetHost + "/" + URI);
+                    setErrorMessage("Access forbidden to " + targetHost + "/" + uri);
                     return null;
                 case HttpStatus.SC_INTERNAL_SERVER_ERROR:
-                    setErrorMessage("Internal server error: " + targetHost + "/" + URI);
+                    setErrorMessage("Internal server error: " + targetHost + "/" + uri);
                     return null;
                 default:
-                    setErrorMessage("Generic error accessing: " + targetHost + "/" + URI);
+                    setErrorMessage(ERROR_GENERIC_REQUEST + targetHost + "/" + uri);
                     return null;
             }
         } catch (KeyStoreException e) {
             logger.debug(e.getMessage(), e);
-            setErrorMessage("POST failed for " + targetHost + "/" + URI + " with KeyStoreException");
+            setErrorMessage(POST_FAILURE_MESSAGE + targetHost + "/" + uri + " with KeyStoreException");
         } catch (NoSuchAlgorithmException e) {
             logger.debug(e.getMessage(), e);
-            setErrorMessage("POST failed for " + targetHost + "/" + URI + " with NoSuchAlgorithmException");
+            setErrorMessage(POST_FAILURE_MESSAGE + targetHost + "/" + uri + " with NoSuchAlgorithmException");
         } catch (KeyManagementException e) {
             logger.debug(e.getMessage(), e);
-            setErrorMessage("POST failed for " + targetHost + "/" + URI + " with KeyManagementException");
+            setErrorMessage(POST_FAILURE_MESSAGE + targetHost + "/" + uri + " with KeyManagementException");
         } catch (ClientProtocolException e) {
             logger.debug(e.getMessage(), e);
-            setErrorMessage("POST failed for " + targetHost + "/" + URI + " with ClientProtocolException");
+            setErrorMessage(POST_FAILURE_MESSAGE + targetHost + "/" + uri + " with ClientProtocolException");
         } catch (IOException e) {
             logger.debug(e.getMessage(), e);
-            setErrorMessage("POST failed for " + targetHost + "/" + URI + " with IOException");
+            setErrorMessage(POST_FAILURE_MESSAGE + targetHost + "/" + uri + " with IOException");
         }
 
-        setErrorMessage("Generic error accessing: " + targetHost + "/" + URI);
+        setErrorMessage(ERROR_GENERIC_REQUEST + targetHost + "/" + uri);
         return null;
     }
 
