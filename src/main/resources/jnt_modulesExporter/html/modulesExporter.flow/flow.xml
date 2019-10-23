@@ -13,8 +13,7 @@
                     expression="modulesMigrationHandler.execute(
                     environmentInfo,
                     externalContext.nativeRequest.getAttribute('currentResource').node,
-                    flowRequestContext,
-                    externalContext.nativeRequest.getAttribute('url'))"/>
+                    flowRequestContext)"/>
         </transition>
     </view-state>
 

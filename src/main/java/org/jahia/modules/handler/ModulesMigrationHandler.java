@@ -4,7 +4,6 @@ import org.jahia.modules.MigrateModules;
 import org.jahia.modules.ResultMessage;
 import org.jahia.modules.model.EnvironmentInfo;
 import org.jahia.services.content.JCRNodeWrapper;
-import org.jahia.services.render.URLGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.binding.message.MessageBuilder;
@@ -25,19 +24,17 @@ public class ModulesMigrationHandler {
      * @param environmentInfo   Object containing environment information read from frontend
      * @param formNode          JCR node information from frontend
      * @param context           Page context
-     * @param url               URL object
      * @return                  true if OK; otherwise false
      * @throws RepositoryException if the JCR session from formNode cannot be open
      */
     public Boolean execute(final EnvironmentInfo environmentInfo,
                            final JCRNodeWrapper formNode,
-                           RequestContext context,
-                           URLGenerator url) throws RepositoryException {
+                           RequestContext context) throws RepositoryException {
 
         logger.info("Starting modules migration");
 
         MigrateModules migrate = new MigrateModules();
-        boolean result = migrate.migrateModules(environmentInfo, formNode, url);
+        boolean result = migrate.migrateModules(environmentInfo, formNode);
 
         if (result) {
             List<ResultMessage> report  = migrate.getResultReport();
@@ -54,7 +51,4 @@ public class ModulesMigrationHandler {
 
         return false;
     }
-
-
-
 }

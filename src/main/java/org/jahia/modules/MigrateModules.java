@@ -1,12 +1,10 @@
 package org.jahia.modules;
 
-
 import org.jahia.data.templates.JahiaTemplatesPackage;
 import org.jahia.modules.model.EnvironmentInfo;
 import org.jahia.registries.ServicesRegistry;
 import org.jahia.services.content.JCRNodeWrapper;
 import org.jahia.services.content.JCRSessionWrapper;
-import org.jahia.services.render.URLGenerator;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,21 +14,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jcr.RepositoryException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**    
+ * Class for modules migration
+ */
 public class MigrateModules {
 
-    private final String BUNDLESINFO_URL = "/modules/api/bundles/*/_info/";
+    private static final String BUNDLESINFO_URL = "/modules/api/bundles/*/_info/";
     private Logger logger = LoggerFactory.getLogger(MigrateModules.class);
-    private String sourceHostName;
-    private String sourceHttpScheme;
-    private int sourcePort;
-    private String sourceUserName;
-    private String sourcePassword;
 
     private String targetHostName;
     private String targetHttpScheme;
@@ -39,7 +33,7 @@ public class MigrateModules {
     private String targetUserName;
     private String targetPassword;
 
-    private StringBuffer errorMessage;
+    private StringBuilder errorMessage;
     private List<ResultMessage> resultReport;
 
     public String getErrorMessage() {
@@ -62,17 +56,16 @@ public class MigrateModules {
      * Method to start the migration of modules from source to target
      * @param environmentInfo The environment information read from front-end and system properties
      * @param jcrNodeWrapper Node wrapper information
-     * @param url URL object for connection
      * @return True if modules were sucessfully migrated, otherwise False
+     * @throws RepositoryException If the JCR node cannot be accessed
      */
     public boolean migrateModules(EnvironmentInfo environmentInfo,
-                                  JCRNodeWrapper jcrNodeWrapper,
-                                  URLGenerator url) throws RepositoryException {
+                                  JCRNodeWrapper jcrNodeWrapper) throws RepositoryException {
 
-        this.errorMessage = new StringBuffer();
+        this.errorMessage = new StringBuilder();
         this.resultReport = new ArrayList<>();
 
-        setConnectionsDetails(environmentInfo, url);
+        setConnectionsDetails(environmentInfo);
         HttpConnectionHelper targetConnection = new HttpConnectionHelper(
                 targetHostName, targetHttpScheme, targetPort, targetUserName, targetPassword);
 
@@ -93,8 +86,8 @@ public class MigrateModules {
 
         List<JahiaModule> sourceModules = getLocalModules();
 
-        if (sourceModules == null) {
-            setErrorMessage("Cannot read modules information for source host " + sourceHostName);
+        if (sourceModules.size() == 0) {
+            setErrorMessage("Cannot read modules information from source environment");
             return false;
         }
 
@@ -149,11 +142,12 @@ public class MigrateModules {
 
                     ResultMessage resultMessage = new ResultMessage(bundleName, version, bundleKey, message);
                     this.resultReport.add(resultMessage);
-                    logger.info("Module " + bundleName + "-" + version + " was installed in host " + this.targetHostName + " result: " + message);
+                    String logMessage = String.format("Module %s-%s was installed in host %s result: %s", bundleName, version, targetHostName, message);
+                    logger.info(logMessage);
                     installedModules++;
                 } catch (JSONException e) {
+                    logger.error("Error while migrating " + result, e);
                     this.setErrorMessage(result);
-                    logger.error("Error while migrating " + result);
                 }
             }
         }
@@ -182,9 +176,8 @@ public class MigrateModules {
             return targetBundlesJsonObj;
 
         } catch (Exception e) {
-            logger.debug(e.getMessage(), e);
+            logger.error("Error parsing JSON from target host " + targetConnection.getHostName(), e);
             setErrorMessage("Error parsing JSON from target host " + targetConnection.getHostName());
-
         }
 
         return null;
@@ -197,7 +190,7 @@ public class MigrateModules {
      * @return JSON Object containing information about target modules
      */
     public List<JahiaModule> parseTargetModules(String desiredType, JSONObject nodesJsonObj) {
-        List<JahiaModule> moduleList = new ArrayList<JahiaModule>();
+        List<JahiaModule> moduleList = new ArrayList<>();
         JSONArray jahiaNodes = nodesJsonObj.names();
 
         try {
@@ -211,8 +204,8 @@ public class MigrateModules {
 
 
                 if (type.equalsIgnoreCase(desiredType)) {
-                    int left = moduleName.indexOf("/");
-                    int right = moduleName.lastIndexOf("/");
+                    int left = moduleName.indexOf('/');
+                    int right = moduleName.lastIndexOf('/');
                     int end = moduleName.length();
                     left = (left == right) ? 0 : left;
 
@@ -226,9 +219,9 @@ public class MigrateModules {
             }
 
         } catch (JSONException e) {
-            logger.error("Error parsing module information. Reason JSONException");
+            logger.error("Error parsing module information. Reason JSONException", e);
             this.setErrorMessage("Error parsing module information. Reason JSONException");
-            return null;
+            return new ArrayList<>();
         }
 
         return moduleList;
@@ -267,28 +260,15 @@ public class MigrateModules {
      * @param environmentInfo Environment information read from Front End
      * @param url URL object
      */
-    private void setConnectionsDetails(EnvironmentInfo environmentInfo, URLGenerator url) {
+    private void setConnectionsDetails(EnvironmentInfo environmentInfo) {
 
-        this.targetHostName = environmentInfo.getRemoteHost();
-        this.targetUserName = environmentInfo.getRemoteToolsUser();
-        this.targetPassword = environmentInfo.getRemoteToolsPwd();
+        targetHostName = environmentInfo.getRemoteHost();
+        targetUserName = environmentInfo.getRemoteToolsUser();
+        targetPassword = environmentInfo.getRemoteToolsPwd();
+        targetHttpScheme = environmentInfo.getRemoteScheme();
 
-        if (environmentInfo.getRemotePort() != 0)
-            this.targetPort = environmentInfo.getRemotePort();
-
-        URL localUrl = null;
-
-        try {
-            localUrl = new URL(url.getServer());
-        } catch (MalformedURLException e) {
-            this.setErrorMessage("Error getting localHost Details, please check server logs");
-            e.printStackTrace();
+        if (environmentInfo.getRemotePort() != 0) {
+            targetPort = environmentInfo.getRemotePort();
         }
-
-        this.targetHttpScheme = environmentInfo.getRemoteScheme();
-
-        this.sourcePort = localUrl.getPort();
-        this.sourceHostName = localUrl.getHost();
-        this.sourceHttpScheme = localUrl.getProtocol();
     }
 }
