@@ -7,8 +7,12 @@ import org.hibernate.validator.constraints.Range;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
+/**    
+ * Serialized class with information about jahia environments
+ */
 public class EnvironmentInfo implements Serializable {
     private static final long serialVersionUID = 29383204L;
+    private static final int DEFAULTPORT = 443;
 
     @NotEmpty(message = "Please enter the target instance URL")
     private String remoteHost;
@@ -22,7 +26,7 @@ public class EnvironmentInfo implements Serializable {
 
     @NotNull(message = "Port can't be empty")
     @Range(min = 1, max = 65535, message = "Invalid Port Number")
-    private Integer remotePort = 443;
+    private Integer remotePort = DEFAULTPORT;
 
 
     private boolean autoStart;
