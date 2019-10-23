@@ -26,12 +26,20 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+/**    
+ * Action class to download all modules from source Jahia environment
+ */
 public class ExportModules extends Action {
 
     private static Logger logger = LoggerFactory.getLogger(ExportModules.class);
 
     @Override
-    public ActionResult doExecute(HttpServletRequest httpServletRequest, RenderContext renderContext, Resource resource, JCRSessionWrapper jcrSessionWrapper, Map<String, List<String>> map, URLResolver urlResolver) throws Exception {
+    public ActionResult doExecute(HttpServletRequest httpServletRequest,
+                                  RenderContext renderContext,
+                                  Resource resource,
+                                  JCRSessionWrapper jcrSessionWrapper,
+                                  Map<String, List<String>> map,
+                                  URLResolver urlResolver) {
 
         logger.info("Modules Download started");
         final String fileName = generateFileName();
@@ -50,7 +58,7 @@ public class ExportModules extends Action {
             while (iterator.hasNext()) {
                 final JCRNodeWrapper node = (JCRNodeWrapper) iterator.nextNode();
                 String nodeName = node.getName();
-                logger.info("Compressing Node: " + nodeName);
+                logger.info("Compressing Node: {}", nodeName);
 
                 Node fileContent = node.getNode("jcr:content");
                 InputStream content = fileContent.getProperty("jcr:data").getBinary().getStream();
@@ -67,14 +75,12 @@ public class ExportModules extends Action {
             zipOutputStream.close();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error downloading modules", e);
         }
-        logger.info(exportedModules + " modules have been exported");
+        logger.info("{} modules have been exported", exportedModules);
         logger.info("Modules download finished");
 
-        ActionResult result = new ActionResult(HttpServletResponse.SC_OK, "/settings." + resource.getNode().getName());
-
-        return result;
+        return new ActionResult(HttpServletResponse.SC_OK, "/settings." + resource.getNode().getName());
     }
 
     private String generateFileName() {
