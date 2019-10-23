@@ -10,16 +10,29 @@ import org.slf4j.LoggerFactory;
 import org.springframework.binding.message.MessageBuilder;
 import org.springframework.webflow.execution.RequestContext;
 
+import javax.jcr.RepositoryException;
 import java.util.List;
 
+/**    
+ * Class responsible to run the migrations and export results to webflow
+ */
 public class ModulesMigrationHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(ModulesMigrationHandler.class);
 
+    /**     
+     * Execute the migration
+     * @param environmentInfo   Object containing environment information read from frontend
+     * @param formNode          JCR node information from frontend
+     * @param context           Page context
+     * @param url               URL object
+     * @return                  true if OK; otherwise false
+     * @throws RepositoryException if the JCR session from formNode cannot be open
+     */
     public Boolean execute(final EnvironmentInfo environmentInfo,
                            final JCRNodeWrapper formNode,
                            RequestContext context,
-                           URLGenerator url) throws Exception {
+                           URLGenerator url) throws RepositoryException {
 
         logger.info("Starting modules migration");
 
