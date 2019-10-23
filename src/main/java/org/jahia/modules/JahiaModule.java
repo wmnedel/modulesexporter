@@ -17,27 +17,32 @@ import javax.jcr.query.Query;
 import java.io.InputStream;
 import java.util.Objects;
 
+/**    
+ * Jahia module Class definition
+ */
 public class JahiaModule {
 
     private static Logger logger = LoggerFactory.getLogger(JahiaModule.class);
 
-    private final static int MAGIC_VERSION_LEVELS_NUMBER = 10;
-
-    public final static int JAHIA_MODULE_SOURCE_HIGHER = 1;
-    public final static int JAHIA_MODULE_TARGET_HIGHER = 2;
-    public final static int JAHIA_MODULE_VERSION_EQUAL = 0;
-
-    private final static String MODULE_MANAGEMENT_QUERY = "SELECT * FROM [jnt:moduleManagementBundle] where NAME() = '";
-    private final static String BUNDLES_URL = "/modules/api/bundles";
-
-    protected final static String JAHIA_MODULE_STATE_STARTED = "STARTED";
-    protected final static String JAHIA_BUNDLE_TYPE = "MODULE";
+    public static final int JAHIA_MODULE_SOURCE_HIGHER = 1;
+    public static final int JAHIA_MODULE_TARGET_HIGHER = 2;
+    public static final int JAHIA_MODULE_VERSION_EQUAL = 0;
+    protected static final String JAHIA_BUNDLE_TYPE = "MODULE";
+    private static final String MODULE_MANAGEMENT_QUERY = "SELECT * FROM [jnt:moduleManagementBundle] where NAME() = '";
+    private static final String BUNDLES_URL = "/modules/api/bundles";
+    private static final int MAGIC_VERSION_LEVELS_NUMBER = 10;
 
     private String name;
     private String version;
     private String state;
     private long versionNumber;
 
+    /**     
+     * Constructor for JahiaModule
+     * @param name          Module name
+     * @param moduleVersion Module version
+     * @param state         Module current state
+     */
     public JahiaModule(String name, String moduleVersion, String state) {
         this.name = name;
         this.version = moduleVersion;
@@ -45,12 +50,22 @@ public class JahiaModule {
         this.versionNumber = createVersionNumber(moduleVersion);
     }
 
+    /**     
+     * Constructor for JahiaModule
+     * @param name          Module name
+     * @param moduleVersion Module version
+     */
     public JahiaModule(String name, String moduleVersion) {
         this.name = name;
         this.version = moduleVersion;
         this.versionNumber = createVersionNumber(moduleVersion);
     }
 
+    /**     
+     * Creates a fixed lenght version number for further comparison. It appends up to 10 zeros at the end of the version
+     * so the number can be compared
+     * @param version Module version
+     */
     private long createVersionNumber(String version) {
         String versionParsed = version.replaceAll("[^0-9]", "");
         for (int i = versionParsed.length(); i < MAGIC_VERSION_LEVELS_NUMBER; i++) {
@@ -92,6 +107,14 @@ public class JahiaModule {
         this.state = state;
     }
 
+    /**     
+     * Method to compare Jahia module versions
+     * @param source    Source module object
+     * @param target    Target module object
+     * @return  JAHIA_MODULE_SOURCE_HIGHER if source version is higher
+     *          JAHIA_MODULE_TARGET_HIGHER if target version is higher
+     *          JAHIA_MODULE_VERSION_EQUAL if versions are equal
+     */
     public static int compareVersions(JahiaModule source, JahiaModule target) {
 
         if (source.getVersionNumber() > target.getVersionNumber()) {
@@ -103,12 +126,20 @@ public class JahiaModule {
         }
     }
 
+    /**     
+     * Performs the module installation in Jahia
+     * @param jcrSessionWrapper     The current JCR session
+     * @param connection            Connection object
+     * @param module                Jahia module object
+     * @param autoStart             Indicates if the module will be started after installation in target
+     * @return  Message to be reported in frontend for this module at the end of the migration
+     */
     public static String installModule(
             JCRSessionWrapper jcrSessionWrapper,
             HttpConnectionHelper connection,
             JahiaModule module, boolean autoStart) {
 
-        logger.debug("Installing module " + module.getNameAndVersion() + " on host " + connection.getHostName());
+        logger.debug("Installing module {} on host {}", module.getNameAndVersion(), connection.getHostName());
         String query = MODULE_MANAGEMENT_QUERY + module.getNameAndVersion() + ".jar'";
         String report = "";
 
@@ -128,7 +159,7 @@ public class JahiaModule {
             while (iterator.hasNext()) {
                 final JCRNodeWrapper node = (JCRNodeWrapper) iterator.nextNode();
                 String nodeName = node.getName();
-                logger.debug("Migrating Module: " + nodeName);
+                logger.debug("Migration Module {}", nodeName);
 
                 Node fileContent = node.getNode("jcr:content");
                 InputStream content = fileContent.getProperty("jcr:data").getBinary().getStream();
@@ -147,38 +178,51 @@ public class JahiaModule {
             }
 
         } catch (PathNotFoundException e) {
-            report = "Module " + module.getNameAndVersion() + ".jar was not installed. Reason: PathNotFoundException";
+            report = String.format("Module %s.jar was not installed. Reason: PathNotFoundException", module.getNameAndVersion());
             logger.error(report);
             logger.debug(e.getMessage(), e);
         } catch (InvalidQueryException e) {
-            report = "Module " + module.getNameAndVersion() + ".jar was not installed. Reason: InvalidQueryException";
+            report = String.format("Module %s.jar was not installed. Reason: InvalidQueryException", module.getNameAndVersion());
             logger.error(report);
             logger.debug(e.getMessage(), e);
         } catch (RepositoryException e) {
-            report = "Module " + module.getNameAndVersion() + ".jar was not installed. Reason: RepositoryException";
+            report = String.format("Module %s.jar was not installed. Reason: RepositoryException", module.getNameAndVersion());
             logger.error(report);
             logger.debug(e.getMessage(), e);
         }
 
-        if (!report.isEmpty())
+        if (!report.isEmpty()) {
             return report;
+        }
 
-            return "Unknown error while installing the module" + module.getNameAndVersion();
+        return "Unknown error while installing the module" + module.getNameAndVersion();
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         JahiaModule that = (JahiaModule) o;
         return Objects.equals(name, that.name) &&
                 Objects.equals(version, that.version);
-
     }
 
+    /**     
+     * Indicates if the object passed as parameter has a newer version than "this"
+     * @param o Object to be compared to this
+     * @return  true if newer; false if older or equal
+     */
     public boolean newerVersion(Object o) {
-        if (this == o) return false;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return false;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         JahiaModule that = (JahiaModule) o;
         return name.equals(that.name) &&
