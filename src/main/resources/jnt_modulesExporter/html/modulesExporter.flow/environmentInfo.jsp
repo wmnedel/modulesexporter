@@ -37,7 +37,11 @@
         <p>
             <fmt:message
                     key="module.desc"></fmt:message>
-            </p>
+        </p>
+        <p>
+            <fmt:message
+                    key="module.desc2"></fmt:message>
+        </p>
         <h2> <fmt:message
                 key="module.header"></fmt:message> </h2>
 
@@ -95,10 +99,20 @@
                                id="autoStart" value="${environmentInfo.autoStart}"/>
                        <span> <fmt:message
                                 key="lbl.autoStart"></fmt:message></span>
-
                     </div>
                 </div>
+            </div>
 
+
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span4">
+                        <form:checkbox class="form-control" path="srcStartedOnly" name="srcStartedOnly"
+                                       id="srcStartedOnly" value="${environmentInfo.srcStartedOnly}"/>
+                        <span> <fmt:message
+                                key="lbl.srcStartedOnly"></fmt:message></span>
+                    </div>
+                </div>
             </div>
 
 
@@ -108,8 +122,7 @@
                         <div class="form-group">
                             <button id="migrateModules" class="btn btn-primary" type="submit"
                                     name="_eventId_migrateModules">
-                                <fmt:message key="lbl.btnSubmit"> </fmt:message>
-
+                                <fmt:message key="lbl.btnSubmit"></fmt:message>
                             </button>
                         </div>
                     </div>

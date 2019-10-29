@@ -31,6 +31,8 @@ public class EnvironmentInfo implements Serializable {
 
     private boolean autoStart;
 
+    private boolean srcStartedOnly;
+
     public int getRemotePort() {
         return remotePort;
     }
@@ -81,6 +83,9 @@ public class EnvironmentInfo implements Serializable {
         this.autoStart = autoStart;
     }
 
+    public boolean isSrcStartedOnly() { return srcStartedOnly; }
+
+    public void setSrcStartedOnly(boolean srcStartedOnly) { this.srcStartedOnly = srcStartedOnly; }
 
     @Override
     public String toString() {
@@ -90,6 +95,4 @@ public class EnvironmentInfo implements Serializable {
                 ", remoteToolsUser='" + remoteToolsUser + '\'' +
                 '}';
     }
-
-
 }
