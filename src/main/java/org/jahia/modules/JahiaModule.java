@@ -3,8 +3,12 @@ package org.jahia.modules;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.jahia.data.templates.JahiaTemplatesPackage;
+import org.jahia.registries.ServicesRegistry;
 import org.jahia.services.content.JCRNodeWrapper;
 import org.jahia.services.content.JCRSessionWrapper;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +19,9 @@ import javax.jcr.RepositoryException;
 import javax.jcr.query.InvalidQueryException;
 import javax.jcr.query.Query;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**    
@@ -59,6 +66,17 @@ public class JahiaModule {
         this.name = name;
         this.version = moduleVersion;
         this.versionNumber = createVersionNumber(moduleVersion);
+    }
+
+    /**     
+     * Constructor for JahiaModule based on jar filename
+     * @param name          Jar module name
+     */
+    public JahiaModule(String name) {
+        String tempNameVersion = name.replace(".jar","");
+        this.name = tempNameVersion.substring(0, tempNameVersion.lastIndexOf("-"));
+        this.version = tempNameVersion.substring(tempNameVersion.lastIndexOf("-") + 1);
+        this.versionNumber = createVersionNumber(this.version);
     }
 
     /**     
@@ -196,6 +214,38 @@ public class JahiaModule {
         }
 
         return "Unknown error while installing the module" + module.getNameAndVersion();
+    }
+
+    /**
+     * Get a list of modules available on the local/source instance
+     * @param onlyStartedModules    Indicates if only started modules will be returned
+     * @return List of installed local modules
+     */
+    protected static List<JahiaModule> getLocalModules(boolean onlyStartedModules) {
+
+        Map<Bundle, JahiaTemplatesPackage> installedModules = ServicesRegistry.getInstance().getJahiaTemplateManagerService().getRegisteredBundles();
+
+        List<JahiaModule> localModules = new ArrayList<>();
+        for (Map.Entry<Bundle, JahiaTemplatesPackage> module : installedModules.entrySet()) {
+
+            String moduleType = module.getValue().getModuleType();
+            if (moduleType.equalsIgnoreCase("module")) {
+                String moduleName = module.getValue().getId();
+                Version version = module.getKey().getVersion();
+
+                String moduleVersion = version.toString();
+                String moduleState = module.getValue().getState().toString();
+
+                JahiaModule jmodule = new JahiaModule(moduleName, moduleVersion, moduleState);
+                if (onlyStartedModules == true && moduleState.toLowerCase().contains("started") == false) {
+                    continue;
+                }
+                localModules.add(jmodule);
+            }
+
+        }
+
+        return localModules;
     }
 
     @Override

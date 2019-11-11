@@ -1,22 +1,17 @@
 package org.jahia.modules;
 
-import org.jahia.data.templates.JahiaTemplatesPackage;
 import org.jahia.modules.model.EnvironmentInfo;
-import org.jahia.registries.ServicesRegistry;
 import org.jahia.services.content.JCRNodeWrapper;
 import org.jahia.services.content.JCRSessionWrapper;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jcr.RepositoryException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  *    
@@ -86,7 +81,7 @@ public class MigrateModules {
             return false;
         }
 
-        List<JahiaModule> sourceModules = getLocalModules(environmentInfo.isSrcStartedOnly());
+        List<JahiaModule> sourceModules = JahiaModule.getLocalModules(environmentInfo.isSrcStartedOnly());
 
         if (sourceModules.size() == 0) {
             setErrorMessage("Cannot read modules information from source environment");
@@ -231,38 +226,6 @@ public class MigrateModules {
         }
 
         return moduleList;
-    }
-
-    /**
-     * Get a list of modules available on the local/source instance
-     * @param onlyStartedModules    Indicates if only started modules will be returned
-     * @return List of installed local modules
-     */
-    private List<JahiaModule> getLocalModules(boolean onlyStartedModules) {
-
-        Map<Bundle, JahiaTemplatesPackage> installedModules = ServicesRegistry.getInstance().getJahiaTemplateManagerService().getRegisteredBundles();
-
-        List<JahiaModule> localModules = new ArrayList<>();
-        for (Map.Entry<Bundle, JahiaTemplatesPackage> module : installedModules.entrySet()) {
-
-            String moduleType = module.getValue().getModuleType();
-            if (moduleType.equalsIgnoreCase("module")) {
-                String moduleName = module.getValue().getId();
-                Version version = module.getKey().getVersion();
-
-                String moduleVersion = version.toString();
-                String moduleState = module.getValue().getState().toString();
-
-                JahiaModule jmodule = new JahiaModule(moduleName, moduleVersion, moduleState);
-                if (onlyStartedModules == true && moduleState.toLowerCase().contains("started") == false) {
-                    continue;
-                }
-                localModules.add(jmodule);
-            }
-
-        }
-
-        return localModules;
     }
 
     /**

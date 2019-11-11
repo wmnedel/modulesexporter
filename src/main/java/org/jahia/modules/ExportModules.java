@@ -15,8 +15,10 @@ import org.springframework.util.StreamUtils;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.query.Query;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
@@ -53,12 +55,22 @@ public class ExportModules extends Action {
 
             OutputStream outputStream = response.getOutputStream();
             ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
+
+            List<JahiaModule> startedModules = JahiaModule.getLocalModules(true);
+
             NodeIterator iterator = jcrSessionWrapper.getWorkspace().getQueryManager().createQuery(query, Query.JCR_SQL2).execute().getNodes();
 
             while (iterator.hasNext()) {
                 final JCRNodeWrapper node = (JCRNodeWrapper) iterator.nextNode();
                 String nodeName = node.getName();
                 logger.info("Compressing Node: {}", nodeName);
+
+                JahiaModule jmodule = new JahiaModule(nodeName);
+                jmodule.setState("Started");
+
+                if (startedModules.contains(jmodule) == false) {
+                    continue;
+                }
 
                 Node fileContent = node.getNode("jcr:content");
                 InputStream content = fileContent.getProperty("jcr:data").getBinary().getStream();
