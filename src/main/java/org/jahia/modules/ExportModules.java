@@ -15,10 +15,8 @@ import org.springframework.util.StreamUtils;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.query.Query;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
@@ -51,7 +49,7 @@ public class ExportModules extends Action {
         try {
             HttpServletResponse response = renderContext.getResponse();
             response.setContentType("application/zip");
-            response.setHeader("Content-Disposition", "attachment; filename=all-modules-" + fileName + ".zip");
+            response.setHeader("Content-Disposition", "attachment; filename=" + fileName + ".zip");
 
             OutputStream outputStream = response.getOutputStream();
             ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
@@ -72,22 +70,27 @@ public class ExportModules extends Action {
                     continue;
                 }
 
-                Node fileContent = node.getNode("jcr:content");
-                InputStream content = fileContent.getProperty("jcr:data").getBinary().getStream();
-
-                byte[] buffer = StreamUtils.copyToByteArray(content);
-                ZipEntry zipEntry = new ZipEntry(nodeName);
-                zipOutputStream.putNextEntry(zipEntry);
-                zipOutputStream.write(buffer);
-                zipOutputStream.closeEntry();
-                content.close();
-                exportedModules++;
+                try {
+                    Node fileContent = node.getNode("jcr:content");
+                    InputStream content = fileContent.getProperty("jcr:data").getBinary().getStream();
+                    byte[] buffer = StreamUtils.copyToByteArray(content);
+                    ZipEntry zipEntry = new ZipEntry(nodeName);
+                    zipOutputStream.putNextEntry(zipEntry);
+                    zipOutputStream.write(buffer);
+                    zipOutputStream.closeEntry();
+                    content.close();
+                    exportedModules++;
+                } catch (Exception e) {
+                    logger.error("Error getting .jar file for module " + nodeName);
+                }
             }
 
             zipOutputStream.close();
 
         } catch (Exception e) {
             logger.error("Error downloading modules", e);
+
+            return new ActionResult(HttpServletResponse.SC_BAD_REQUEST, "/settings." + resource.getNode().getName());
         }
         logger.info("{} modules have been exported", exportedModules);
         logger.info("Modules download finished");
