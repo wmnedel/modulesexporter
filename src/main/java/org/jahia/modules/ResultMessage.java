@@ -1,16 +1,12 @@
 package org.jahia.modules;
 
 import java.io.Serializable;
+import java.util.List;
 
-/**    
- * Serialized class to provide a report of the modules migration
- */
 public class ResultMessage implements Serializable {
 
     String bundleName;
     String version;
-
-    String bundleKey;
     String message;
 
     private static final long serialVersionUID = 1;
@@ -19,13 +15,11 @@ public class ResultMessage implements Serializable {
      * Constructor for ResultMessage
      * @param bundleName    Name of the bundle
      * @param version       Bundle version
-     * @param bundleKey     Bundle key
      * @param message       Custom message to be printed
      */
-    public ResultMessage(String bundleName, String version, String bundleKey, String message) {
+    public ResultMessage(String bundleName, String version, String message) {
         this.bundleName = bundleName;
         this.version = version;
-        this.bundleKey = bundleKey;
         this.message = message;
     }
 
@@ -43,14 +37,6 @@ public class ResultMessage implements Serializable {
 
     public void setVersion(String version) {
         this.version = version;
-    }
-
-    public String getBundleKey() {
-        return bundleKey;
-    }
-
-    public void setBundleKey(String bundleKey) {
-        this.bundleKey = bundleKey;
     }
 
     public String getMessage() {

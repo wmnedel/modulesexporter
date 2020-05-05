@@ -34,11 +34,10 @@ public class ModulesMigrationHandler {
         logger.info("Starting modules migration");
 
         MigrateModules migrate = new MigrateModules();
-        boolean result = migrate.migrateModules(environmentInfo, formNode);
+        boolean result = migrate.migrateModules(environmentInfo);
 
         if (result) {
             List<ResultMessage> report  = migrate.getResultReport();
-
             context.getFlowScope().put("migrationReport", report);
             logger.info("Finishing modules migration");
            return true;

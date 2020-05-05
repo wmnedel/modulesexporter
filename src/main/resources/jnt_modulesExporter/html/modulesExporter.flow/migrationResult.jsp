@@ -7,7 +7,7 @@
 
 <div class="box-1">
 
-    <h2> Modules Migration Result</h2>
+    <h2>Custom modules should replace groupID org.jahia.com in pom.xml</h2>
 
     <table class="table table-striped">
         <thead>

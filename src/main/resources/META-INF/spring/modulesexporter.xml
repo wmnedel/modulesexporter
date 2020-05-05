@@ -7,15 +7,10 @@
         http://www.springframework.org/schema/mvc
         http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd">
 
-    <bean class="org.jahia.modules.ExportModules">
-        <property name="name" value="exportModules"/>
-    </bean>
     <bean id="modulesMigrationHandler" class="org.jahia.modules.handler.ModulesMigrationHandler"/>
-
 
     <mvc:annotation-driven conversion-service="springTypeConversionService"/>
 
     <bean id="messageSource" class="org.jahia.utils.i18n.ModuleMessageSource"/>
-
 
 </beans>
