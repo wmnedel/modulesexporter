@@ -52,6 +52,17 @@
             <div class="container-fluid">
                 <div class="row-fluid">
                     <div class="span4">
+                        <form:checkbox class="form-control" path="srcNonJahiaOnly" name="srcNonJahiaOnly"
+                                       id="srcNonJahiaOnly" value="${environmentInfo.srcNonJahiaOnly}"/>
+                        <span> <fmt:message
+                                key="lbl.srcNonJahiaOnly"></fmt:message></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span4">
                         <div class="form-group">
                             <button id="migrateModules" class="btn btn-primary" type="submit"
                                     name="_eventId_migrateModules">

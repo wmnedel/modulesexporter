@@ -8,9 +8,22 @@ import java.io.Serializable;
 public class EnvironmentInfo implements Serializable {
     private static final long serialVersionUID = 29383204L;
 
+    private boolean srcNonJahiaOnly;
     private boolean srcStartedOnly;
 
-    public boolean isSrcStartedOnly() { return srcStartedOnly; }
+    public boolean isSrcNonJahiaOnly() {
+        return srcNonJahiaOnly;
+    }
 
-    public void setSrcStartedOnly(boolean srcStartedOnly) { this.srcStartedOnly = srcStartedOnly; }
+    public void setSrcNonJahiaOnly(boolean srcNonJahiaOnly) {
+        this.srcNonJahiaOnly = srcNonJahiaOnly;
+    }
+
+    public boolean isSrcStartedOnly() {
+        return srcStartedOnly;
+    }
+
+    public void setSrcStartedOnly(boolean srcStartedOnly) {
+        this.srcStartedOnly = srcStartedOnly;
+    }
 }

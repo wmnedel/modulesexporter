@@ -1,5 +1,9 @@
 package org.jahia.modules.handler;
 
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
+import org.apache.commons.httpclient.params.HttpClientParams;
+import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.jahia.api.Constants;
 import org.jahia.data.templates.JahiaTemplatesPackage;
 import org.jahia.modules.model.EnvironmentInfo;
@@ -10,6 +14,10 @@ import org.jahia.services.content.JCRSessionFactory;
 import org.jahia.services.content.JCRSessionWrapper;
 import org.jahia.services.content.nodetypes.ExtendedNodeType;
 import org.jahia.services.content.nodetypes.NodeTypeRegistry;
+import org.jahia.services.notification.HttpClientService;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Version;
 import org.slf4j.Logger;
@@ -22,6 +30,7 @@ import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.query.Query;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,15 +42,64 @@ public class ModulesMigrationHandler {
     private static final Logger logger = LoggerFactory.getLogger(ModulesMigrationHandler.class);
     private List<ResultMessage> resultReport = new ArrayList<>();
     private StringBuilder errorMessage = new StringBuilder();
+    private HttpClientService httpClientService;
+    private List<String> jahiaStoreModules = new ArrayList<>();
+
+    private void initClient() {
+        HttpClientParams params = new HttpClientParams();
+        params.setAuthenticationPreemptive(true);
+        params.setCookiePolicy("ignoreCookies");
+
+        HttpConnectionManagerParams cmParams = new HttpConnectionManagerParams();
+        cmParams.setConnectionTimeout(15000);
+        cmParams.setSoTimeout(60000);
+
+        MultiThreadedHttpConnectionManager httpConnectionManager = new MultiThreadedHttpConnectionManager();
+        httpConnectionManager.setParams(cmParams);
+
+        httpClientService = new HttpClientService();
+        httpClientService.setHttpClient(new HttpClient(params, httpConnectionManager));
+    }
+
+    public void setErrorMessage(String message) {
+        this.errorMessage.append("</br>" + message);
+    }
+
+    private void loadStoreJahiaModules() {
+        String url = "https://store.jahia.com/en/sites/private-app-store/contents/modules-repository.moduleList.json";
+
+        initClient();
+
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put("accept", "application/json");
+        String jsonModuleList = httpClientService.executeGet(url, headers);
+
+        JSONArray modulesRoot = null;
+        try {
+            modulesRoot = new JSONArray(jsonModuleList);
+            JSONArray moduleList = modulesRoot.getJSONObject(0).getJSONArray("modules");
+            for (int i = 0; i < moduleList.length(); i++) {
+                final JSONObject moduleObject = moduleList.getJSONObject(i);
+                final String moduleName = moduleObject.getString("name");
+                final String groupId = moduleObject.getString("groupId");
+
+                if (groupId.equalsIgnoreCase("org.jahia.modules")) {
+                    jahiaStoreModules.add(moduleName.toLowerCase());
+                }
+            }
+        } catch (JSONException e) {
+            setErrorMessage("Cannot load information from Jahia Store. Please consider including Jahia modules in the report");
+            logger.error("Error reading information from Jahia Store. Please consider including Jahia modules in the report");
+            logger.error(e.toString());
+        }
+    }
 
     /**
      * Get a list of modules available on the local/source instance
      * @param onlyStartedModules    Indicates if only started modules will be returned
      * @return List of installed local modules
      */
-    private void getLocalModules(boolean onlyStartedModules) {
-
-        resultReport.clear();
+    private void getLocalModules(boolean onlyStartedModules, boolean removeJahiaModules) {
 
         Map<Bundle, JahiaTemplatesPackage> installedModules = ServicesRegistry.getInstance().getJahiaTemplateManagerService().getRegisteredBundles();
 
@@ -64,6 +122,14 @@ public class ModulesMigrationHandler {
                 Version version = localBundle.getVersion();
                 String moduleVersion = version.toString();
                 String moduleGroupId = localJahiaBundle.getGroupId();
+                String modulescmURI = localJahiaBundle.getScmURI().toLowerCase();
+
+                if (removeJahiaModules == true
+                        && moduleGroupId.equalsIgnoreCase("org.jahia.modules")
+                        && (jahiaStoreModules.contains(moduleName.toLowerCase()) || modulescmURI.contains("scm:git:git@github.com:jahia/"))) {
+                    continue;
+                }
+
                 List<String> nodeTypesWithLegacyJmix = new ArrayList<String>();
                 List<String> siteSettingsPaths = new ArrayList<String>();
                 List<String> serverSettingsPaths = new ArrayList<String>();
@@ -73,7 +139,7 @@ public class ModulesMigrationHandler {
                 for (ExtendedNodeType moduleNodeType : it) {
                     String[] declaredSupertypeNamesList = moduleNodeType.getDeclaredSupertypeNames();
                     for (String supertypeName : declaredSupertypeNamesList) {
-                        if (supertypeName.toLowerCase().contains("jmix:cmcontentreedisplayable")) {
+                        if (supertypeName.toLowerCase().equalsIgnoreCase("jmix:cmcontentreedisplayable")) {
                             nodeTypesWithLegacyJmix.add(moduleNodeType.getName());
                             break;
                         }
@@ -124,6 +190,7 @@ public class ModulesMigrationHandler {
                         for (String beanDefinitionName : beanDefinitionNames) {
                             if (beanDefinitionName.contains("springframework")) {
                                 hasSpringBean = true;
+                                break;
                             }
                         }
                     }
@@ -164,7 +231,11 @@ public class ModulesMigrationHandler {
 
         logger.info("Starting modules report");
 
-        getLocalModules(environmentInfo.isSrcStartedOnly());
+        resultReport.clear();
+        jahiaStoreModules.clear();
+
+        loadStoreJahiaModules();
+        getLocalModules(environmentInfo.isSrcStartedOnly(), environmentInfo.isSrcNonJahiaOnly());
 
         if (this.errorMessage.length() > 0) {
             context.getMessageContext().addMessage(new MessageBuilder().error()
