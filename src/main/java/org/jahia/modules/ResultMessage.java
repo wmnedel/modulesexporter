@@ -1,49 +1,91 @@
 package org.jahia.modules;
 
 import java.io.Serializable;
-import java.util.List;
 
 public class ResultMessage implements Serializable {
 
-    String bundleName;
-    String version;
-    String message;
+    String moduleName;
+    String moduleVersion;
+    String moduleGroupId;
+    String nodeTypes;
+    String serverSettings;
+    String siteSettings;
+    boolean hasSpringBean;
 
-    private static final long serialVersionUID = 1;
+    private static final long serialVersionUID = -6552128415414065542L;
 
     /**     
      * Constructor for ResultMessage
-     * @param bundleName    Name of the bundle
-     * @param version       Bundle version
-     * @param message       Custom message to be printed
      */
-    public ResultMessage(String bundleName, String version, String message) {
-        this.bundleName = bundleName;
-        this.version = version;
-        this.message = message;
+    public ResultMessage(String moduleName,
+                         String moduleVersion,
+                         String moduleGroupId,
+                         String nodeTypes,
+                         String serverSettings,
+                         String siteSettings,
+                         boolean hasSpringBean) {
+        this.moduleName = moduleName;
+        this.moduleVersion = moduleVersion;
+        this.moduleGroupId = moduleGroupId;
+        this.nodeTypes = nodeTypes;
+        this.serverSettings = serverSettings;
+        this.siteSettings = siteSettings;
+        this.hasSpringBean = hasSpringBean;
     }
 
-    public String getBundleName() {
-        return bundleName;
+    public String getModuleName() {
+        return moduleName;
     }
 
-    public void setBundleName(String bundleName) {
-        this.bundleName = bundleName;
+    public void setModuleName(String moduleName) {
+        this.moduleName = moduleName;
     }
 
-    public String getVersion() {
-        return version;
+    public String getModuleVersion() {
+        return moduleVersion;
     }
 
-    public void setVersion(String version) {
-        this.version = version;
+    public void setModuleVersion(String moduleVersion) {
+        this.moduleVersion = moduleVersion;
     }
 
-    public String getMessage() {
-        return message;
+    public String getModuleGroupId() {
+        return moduleGroupId;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setModuleGroupId(String moduleGroupId) {
+        this.moduleGroupId = moduleGroupId;
+    }
+
+    public String getNodeTypes() {
+        return nodeTypes;
+    }
+
+    public void setNodeTypes(String nodeTypes) {
+        this.nodeTypes = nodeTypes;
+    }
+
+    public String getServerSettings() {
+        return serverSettings;
+    }
+
+    public void setServerSettings(String serverSettings) {
+        this.serverSettings = serverSettings;
+    }
+
+    public String getSiteSettings() {
+        return siteSettings;
+    }
+
+    public void setSiteSettings(String siteSettings) {
+        this.siteSettings = siteSettings;
+    }
+
+    public boolean isHasSpringBean() {
+        return hasSpringBean;
+    }
+
+    public void setHasSpringBean(boolean hasSpringBean) {
+        this.hasSpringBean = hasSpringBean;
     }
 }

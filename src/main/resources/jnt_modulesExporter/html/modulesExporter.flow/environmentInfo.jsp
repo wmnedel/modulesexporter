@@ -23,13 +23,7 @@
 <template:addResources type="javascript" resources="spinner.js"/>
 <template:addResources type="css" resources="style.css"/>
 
-
-<c:set var="actionUrl" value="${url.base}${currentNode.path}.exportModules.do"/>
-
-
 <div class="box-1">
-
-
     <form:form id="form1" modelAttribute="environmentInfo" method="post">
         <%@ include file="validation.jspf" %>
         <h1><fmt:message
@@ -38,45 +32,46 @@
             <fmt:message
                     key="module.desc"></fmt:message>
         </p>
-        <h2> <fmt:message
-                key="module.header"></fmt:message> </h2>
+        <h2><fmt:message
+                key="module.header"></fmt:message></h2>
 
 
         <fieldset>
 
-        <div class="container-fluid">
-            <div class="row-fluid">
-                <div class="span4">
-                    <form:checkbox class="form-control" path="srcStartedOnly" name="srcStartedOnly"
-                                   id="srcStartedOnly" value="${environmentInfo.srcStartedOnly}"/>
-                    <span> <fmt:message
-                            key="lbl.srcStartedOnly"></fmt:message></span>
-                </div>
-            </div>
-        </div>
-
-
-        <div class="container-fluid">
-            <div class="row-fluid">
-                <div class="span4">
-                    <div class="form-group">
-                        <button id="migrateModules" class="btn btn-primary" type="submit"
-                                name="_eventId_migrateModules">
-                            <fmt:message key="lbl.btnSubmit"></fmt:message>
-                        </button>
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span4">
+                        <form:checkbox class="form-control" path="srcStartedOnly" name="srcStartedOnly"
+                                       id="srcStartedOnly" value="${environmentInfo.srcStartedOnly}"/>
+                        <span> <fmt:message
+                                key="lbl.srcStartedOnly"></fmt:message></span>
                     </div>
                 </div>
-
             </div>
-        </div>
 
-    </fieldset>
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span4">
+                        <div class="form-group">
+                            <button id="migrateModules" class="btn btn-primary" type="submit"
+                                    name="_eventId_migrateModules">
+                                <fmt:message key="lbl.btnSubmit"></fmt:message>
+                            </button>
+                        </div>
+                    </div>
 
-</form:form>
-<div class="loading-spinner">
-    <span> Processing, please wait...</span>
-</div>
+                </div>
+            </div>
 
+        </fieldset>
+
+    </form:form>
+
+    <div class="loading-spinner">
+        <span> Processing, please wait...</span>
+    </div>
+
+    <c:set var="redirectUrl" value="${renderContext.mainResource.node.path}.html" scope="session" />
 
 </div>
 

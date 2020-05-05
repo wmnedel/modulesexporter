@@ -7,21 +7,29 @@
 
 <div class="box-1">
 
-    <h2>Custom modules should replace groupID org.jahia.com in pom.xml</h2>
+    <h2>Report</h2>
 
     <table class="table table-striped">
         <thead>
         <tr>
-            <th>Module Name</th>
-            <th> Version</th>
-            <th> Result</th>
+            <th>Name</th>
+            <th>Version Id</th>
+            <th>Group ID</th>
+            <th>jmix:cmContentTreeDisplayable</th>
+            <th>serverSettings</th>
+            <th>siteSettings</th>
+            <th>Spring</th>
         </tr>
         </thead>
         <c:forEach items="${migrationReport}" var="module">
             <tr>
-                <td> ${module.bundleName} </td>
-                <td> ${module.version} </td>
-                <td> ${module.message} </td>
+                <td>${module.moduleName}</td>
+                <td>${module.moduleVersion}</td>
+                <td>${module.moduleGroupId}</td>
+                <td>${module.nodeTypes}</td>
+                <td>${module.serverSettings}</td>
+                <td>${module.siteSettings}</td>
+                <td>${module.hasSpringBean}</td>
             </tr>
         </c:forEach>
     </table>
@@ -32,5 +40,7 @@
             Back
         </button>
     </form:form>
+
+    <c:set var="redirectUrl" value="${renderContext.mainResource.node.path}.html" scope="session" />
 
 </div>

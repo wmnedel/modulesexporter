@@ -5,14 +5,12 @@
 
     <var name="environmentInfo" class="org.jahia.modules.model.EnvironmentInfo"/>
 
-
     <view-state id="environmentInfo" model="environmentInfo">
 
         <transition on="migrateModules" to="isValid">
             <evaluate
                     expression="modulesMigrationHandler.execute(
                     environmentInfo,
-                    externalContext.nativeRequest.getAttribute('currentResource').node,
                     flowRequestContext)"/>
         </transition>
     </view-state>
@@ -22,8 +20,7 @@
     </decision-state>
 
     <view-state id="migrationResult">
-
-        <transition on="previous" to="environmentInfo" bind="false" validate= "false"></transition>
+        <transition on="previous" to="environmentInfo" bind="false" validate="false"></transition>
     </view-state>
 
 </flow>
